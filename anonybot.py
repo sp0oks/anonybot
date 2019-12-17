@@ -44,7 +44,11 @@ async def send_msg(message: types.Message):
         session = Session()
         args = message.get_args().split()
         if len(args) >= 1:
-            receiver = int(args[0])
+            try:
+                receiver = int(args[0])
+            except ValueError:
+                await message.reply('You need to specify a Telegram id as the receiver.')
+                return
             if message.reply_to_message is not None:
                 msg = Msg(user_id=receiver, text=message.reply_to_message.text)
                 try:
