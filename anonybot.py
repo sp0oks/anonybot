@@ -32,6 +32,7 @@ USAGE = """\
 /receive -- receive pending messages
 /send [user_id] -- reply to message to send it to given user
 /drop -- drop all pending messages
+/help -- shows this message
 """
 TOKEN = os.getenv('BOT_TOKEN')
 bot = Bot(token=TOKEN)
@@ -109,6 +110,12 @@ async def status(message: types.Message):
         msgs = session.query(Msg).filter_by(user_id=message.from_user.id).count()
         text = f'You have {msgs} pending messages.'
         await message.reply(text)
+
+
+@dp.message_handler(commands=['help'])
+async def start(message: types.Message):
+    if message.chat.type == 'private':
+        await message.reply(text=USAGE)
 
 
 @dp.message_handler(commands=['start'])
