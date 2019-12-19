@@ -75,13 +75,15 @@ async def receive_msg(message: types.Message):
     if message.chat.type == 'private':
         session = Session()
         msgs = session.query(Msg).filter_by(user_id=message.from_user.id).all()
-        if msgs is not None:
+        if len(msgs) > 0:
             for i, msg in enumerate(msgs, 1):
                 text = f'#{i}: {msg.text}'
                 await message.reply(text, parse_mode=types.message.ParseMode.MARKDOWN, reply=False)
             try:
-                session.query(Msg).filter(Msg.user_id == message.from_user.id).delete()
+                session.query(Msg).filter_by(user_id=message.from_user.id).delete()
+                session.commit()
             except SQLAlchemyError as err:
+                session.rollback()
                 print(f'[{time.asctime()}]: {err}')
                 await message.reply('Something happened, could not drop messages.')
         else:
@@ -94,7 +96,8 @@ async def drop_msg(message: types.Message):
         session = Session()
         msgs = session.query(Msg).filter_by(user_id=message.from_user.id).count()
         try:
-            session.query(Msg).filter(Msg.user_id == message.from_user.id).delete()
+            session.query(Msg).filter_by(user_id=message.from_user.id).delete()
+            session.commit()
             await message.reply(f'Dropped {msgs} messages.')
         except SQLAlchemyError as err:
             session.rollback()
